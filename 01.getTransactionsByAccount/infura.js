@@ -17,11 +17,11 @@ const getTransactions = async (web3, address, blockNumber) => {
 
   const txs = [];
 
-  txHashes.forEach(async (txHash) => {
-    const tx = await web3.eth.getTransaction(txHash);
-    if (!tx) return;
+  for (let i = 0; i < txHashes.length; i++) {
+    const tx = await web3.eth.getTransaction(txHashes[i]);
+    if (!tx) continue;
     if (tx.from === address || tx.to === address) txs.push(tx);
-  });
+  }
 
   return txs;
 };
@@ -41,6 +41,8 @@ const getTransactionsByAccount = async (
 };
 
 const main = async () => {
+  console.log("=".repeat(50));
+
   const balance = await web3.eth.getBalance(address);
 
   console.log(`지갑 ${address}의 잔액은... ${balance}입니다.`);
@@ -48,6 +50,8 @@ const main = async () => {
   const inEther = await web3.utils.fromWei(balance, "ether");
 
   console.log(`이더 단위로는 ${inEther} ETH 입니다.`);
+
+  console.log("=".repeat(50));
 
   const txs = await getTransactionsByAccount(
     web3,
@@ -59,7 +63,17 @@ const main = async () => {
   console.log(
     `${startBlockNumber} ~ ${endBlockNumber} 블록에서 발생한 ${address}의 트랜잭션은...`
   );
-  console.log(...txs);
+  console.log("=".repeat(50));
+
+  for (let i = 0; i < txs.length; i++) {
+    const { blockNumber, from, to, value } = txs[i];
+    const inEther = await web3.utils.fromWei(value, "ether");
+    console.log(`블록 번호: ${blockNumber}`);
+    console.log(`보낸 사람: ${from}`);
+    console.log(`받는 사람: ${to}`);
+    console.log(`보낸 이더: ${inEther} ETH`);
+    console.log("=".repeat(50));
+  }
 };
 
 main();
