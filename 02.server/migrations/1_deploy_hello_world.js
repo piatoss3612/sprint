@@ -1,5 +1,5 @@
-var helloWorld = artifacts.require("HelloWorld");
+var HelloWorld = artifacts.require("HelloWorld");
 
 module.exports = (deployer) => {
-  deployer.deploy(helloWorld);
+  deployer.deploy(HelloWorld);
 };
