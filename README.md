@@ -1,13 +1,14 @@
 # Sprint
 
-## Common Requirements
+## 00.Common Requirements
 
 1. node.js
 2. npm
+3. docker (optional)
 
 ## 01.getTransactionsByAccount
 
-### Setup
+### 1.Setup
 
 ```sh
 $ cd 01.getTransactionsByAccount
@@ -17,7 +18,7 @@ $ cd 01.getTransactionsByAccount
 $ npm install
 ```
 
-### Infura + Web3.js
+### 2.Infura + Web3.js
 
 #### Requirements
 
@@ -34,7 +35,7 @@ or
 $ node infura.js
 ```
 
-### Etherscan API
+### 3.Etherscan API
 
 #### Requirements
 
@@ -60,7 +61,7 @@ $ node etherscan.js
 1. truffle
 2. ganache
 
-### Setup
+### 1.Setup
 
 ```sh
 $ cd 02.server
@@ -70,25 +71,31 @@ $ cd 02.server
 $ npm install
 ```
 
-### Run ganache
+### 2.Run ganache
 
 ```sh
 $ ganache --chain.networkId=1337
 ```
 
-### Compile contracts
+or
+
+```sh
+$ docker run -d -p 8545:8545 --name ganache trufflesuite/ganache:latest --chain.networkId=1337
+```
+
+### 3.Compile contracts
 
 ```sh
 $ truffle compile
 ```
 
-### Deploy contracts
+### 4.Deploy contracts
 
 ```sh
 $ truffle deploy --network development
 ```
 
-### Run server
+### 5.Run server
 
 ```sh
 $ npm start
