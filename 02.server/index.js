@@ -5,6 +5,7 @@ const fs = require("fs");
 const app = express();
 const port = 3000;
 const networkId = 1337;
+let simpleTokenAddress = "";
 
 const getWeb3 = () => {
   return new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
@@ -80,7 +81,29 @@ const deploySimpleToken = async () => {
       })
       .send({ from: accounts[0], gas: 1500000, gasPrice: "30000000000000" });
 
+    simpleTokenAddress = receipt._address;
+
     return receipt;
+  } catch (e) {
+    return e;
+  }
+};
+
+const transferSimpleToken = async () => {
+  try {
+    const compiled = getSimpleTokenCompiled();
+    const abi = compiled.abi;
+    const accounts = await getAccounts();
+
+    console.log(simpleTokenAddress);
+
+    Contract.setProvider("http://127.0.0.1:8545");
+    const contract = new Contract(abi, simpleTokenAddress);
+    const value = Web3.utils.toWei("1", "ether");
+
+    return await contract.methods
+      .transfer(accounts[1], value)
+      .call({ from: accounts[0] });
   } catch (e) {
     return e;
   }
@@ -109,6 +132,11 @@ app.get("/helloworld", async (req, res) => {
 app.get("/deploy", async (req, res) => {
   const receipt = await deploySimpleToken();
   res.send(receipt);
+});
+
+app.get("/transfer", async (req, res) => {
+  const result = await transferSimpleToken();
+  res.send(result);
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}!`));
