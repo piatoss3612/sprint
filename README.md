@@ -7,11 +7,17 @@
 
 ## 01.getTransactionsByAccount
 
+### Setup
+
 ```sh
 $ cd 01.getTransactionsByAccount
 ```
 
-### Infura + Web3
+```sh
+$ npm install
+```
+
+### Infura + Web3.js
 
 #### Requirements
 
@@ -54,6 +60,16 @@ $ node etherscan.js
 1. truffle
 2. ganache
 
+### Setup
+
+```sh
+$ cd 02.server
+```
+
+```sh
+$ npm install
+```
+
 ### Run ganache
 
 ```sh
@@ -77,4 +93,3 @@ $ truffle deploy --network development
 ```sh
 $ npm start
 ```
-
