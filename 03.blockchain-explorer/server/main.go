@@ -5,22 +5,33 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func main() {
+	port := flag.Int("port", 8080, "HTTP port")
 	network := flag.String("network", "", "Ethereum network")
 	infura := flag.String("infura", "", "Infura API key")
 	flag.Parse()
+
+	if *port < 1 || *port > 65535 {
+		log.Fatal("Invalid port number")
+	}
 
 	var rpcURL string
 
 	if *network == "" {
 		rpcURL = "http://localhost:8545"
 	} else {
+		if *infura == "" {
+			log.Fatal("Infura API key is required")
+		}
 		rpcURL = fmt.Sprintf("https://%s.infura.io/v3/%s", *network, *infura)
 	}
 
@@ -33,24 +44,44 @@ func main() {
 	}
 	defer client.Close()
 
-	blockNumber, err := client.BlockNumber(context.Background())
-	if err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr: fmt.Sprintf(":%d", *port),
 	}
 
-	log.Printf("Latest block number: %d\n", blockNumber)
+	stop := make(chan bool)
+	shutdown := make(chan os.Signal, 1)
 
-	block, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blockNumber)))
-	if err != nil {
-		log.Fatal(err)
-	}
+	signal.Notify(shutdown,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
 
-	log.Printf("Block number: %d\n", block.Number())
-	log.Printf("Block hash: %s\n", block.Hash().Hex())
-	log.Printf("Block time: %s\n", time.Unix(int64(block.Time()), 0))
-	log.Printf("Block gas limit: %d\n", block.GasLimit())
-	log.Printf("Block gas used: %d\n", block.GasUsed())
-	log.Printf("Block nonce: %d\n", block.Nonce())
-	log.Printf("Block difficulty: %d\n", block.Difficulty())
-	log.Printf("Block transactions: %d\n", len(block.Transactions()))
+	go func() {
+		log.Printf("Server started on port %d", *port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		defer func() {
+			close(stop)
+			close(shutdown)
+		}()
+
+		<-shutdown
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Println(err)
+		}
+
+		log.Println("Server stopped")
+	}()
+
+	<-stop
 }
